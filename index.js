@@ -1,4 +1,5 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const Joi = require('joi')
 const app = express()
 const router = require('./routes/genres');

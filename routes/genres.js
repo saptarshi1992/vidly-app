@@ -1,28 +1,48 @@
 const express = require('express')
 const Joi = require('joi')
+const mongoose = require('mongoose')
 const router = express.Router()
-const genres = [
-    { id: 1, name: 'Action' },
-    { id: 2, name: 'Horror' },
-    { id: 3, name: 'Romance' },
-] 
+//mongodb connection//
+mongoose.connect('mongodb://0.0.0.0:27017/vidly-1')
+.then(()=> console.log('MongoDB database connected'))
+.catch((err)=> console.log('database connection error',err))
 
-//GET::
-router.get('/', (req, res) => {
-    res.send(genres)
+//create schema//
+const createSchema = mongoose.Schema({
+    name: {
+        type:String,
+        required:true,
+        minlength:3,
+        maxlength:20,
+        lowercase:true,
+        trim:true
+    }
 })
 
-router.get('/:id', (req, res) => {
-    const genre = genres.find(c => c.id === parseInt(req.params.id))
+//compiles model()//
+const Genre = mongoose.model('Genres', createSchema)
+
+//GET::
+router.get('/', async (req, res) => {
+    const genre = await Genre.find()
+    console.log(genre)
+    res.send(genre)
+})
+
+//GET[:id]::
+router.get('/:id', async(req, res) => {
+    //const genre = genres.find(c => c.id === parseInt(req.params.id))
+    const genre = await Genre.findById(req.params.id)
     if (!genre) {
         res.status(404).send('ID is not present')
         return
     } else {
         res.send(genre)
+        console.log(genre)
     }
 })
 //POST::
-router.post('/', (req, res) => {
+router.post('/', async(req, res) => {
     const schema = Joi.object({
         name: Joi.string().min(3)
             .max(30)
@@ -34,17 +54,28 @@ router.post('/', (req, res) => {
         res.status(400).send(error.details[0].message)
         return
     }
-    const genre = {
+    const genre = new Genre({
+        name:req.body.name
+    })
+    try{
+        const result = await genre.save()
+        res.send(result)
+        console.log(result)
+    }catch(ex){
+        console.log('error',ex.message)
+    }
+    //for testing //
+    /*const genre = {
         id: genres.length + 1,
         name: req.body.name
     }
     genres.push(genre)
-    res.send(genre)
+    res.send(genre)*/
 })
 //PUT::
-
-router.put('/:id',(req,res) => {
-   const genre = genres.find(c => c.id === parseInt(req.params.id))
+router.put('/:id',async(req,res) => {
+  // const genre = genres.find(c => c.id === parseInt(req.params.id))
+  const genre = await Genre.findById(req.params.id)
    if(!genre){
        res.status(404).send('doc-id is not present.')
    }
@@ -54,22 +85,30 @@ router.put('/:id',(req,res) => {
     res.status(400).send(error.details[0].message)
     return;
 }
-   genre.name = req.body.name
-   res.send(genre)
+   //genre.name = req.body.name
+   genre.set({
+    name:req.body.name
+   })
+   const update = await genre.save()
+   console.log(update)
+   res.send(update)
 
 })
 
 
 //DELETE::
-router.delete('/:id',(req,res) =>{
-   const genre = genres.find(c => c.id === parseInt(req.params.id))
+router.delete('/:id',async(req,res) =>{
+   //const genre = genres.find(c => c.id === parseInt(req.params.id))
+  var genre = Genre.findById(req.params.id)
    if(!genre){
       res.status(400).send('ID is not present')
       return
    }
-   const index = genres.indexOf(genre)
-   genres.splice(index,1)
-   res.send(genres)
+   /*const index = genres.indexOf(genre)
+   genres.splice(index,1)*/
+   var  genre = await Genre.deleteOne({_id:req.params.id})
+   console.log(genre)
+   res.send(genre)
 })
 
 //validation::
