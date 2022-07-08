@@ -1,26 +1,9 @@
 const express = require('express')
 const Joi = require('joi')
 const mongoose = require('mongoose')
+const Genre = require('../models/genre')
 const router = express.Router()
-//mongodb connection//
-mongoose.connect('mongodb://0.0.0.0:27017/vidly-1')
-.then(()=> console.log('MongoDB database connected'))
-.catch((err)=> console.log('database connection error',err))
 
-//create schema//
-const createSchema = mongoose.Schema({
-    name: {
-        type:String,
-        required:true,
-        minlength:3,
-        maxlength:20,
-        lowercase:true,
-        trim:true
-    }
-})
-
-//compiles model()//
-const Genre = mongoose.model('Genres', createSchema)
 
 //GET::
 router.get('/', async (req, res) => {

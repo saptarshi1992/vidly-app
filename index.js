@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const Joi = require('joi')
 const app = express()
 const router = require('./routes/genres');
+const customerRouter = require('./routes/customers');
 app.set('view engine','pug')
 app.set('views','./views')
 
@@ -14,6 +15,7 @@ app.get('/', (req, res) => {
 })
 
 app.use('/api/genres',router)
+app.use('/api/customer',customerRouter)
 
 
 
